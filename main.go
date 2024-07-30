@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/rs/cors"
 	"github.com/urfave/cli/v2"
 )
 
@@ -60,22 +61,40 @@ func startServer(ctx context.Context, d *daemon, tcpListener string) error {
 	// 2. Does the multiaddr work? If not, what's the error?
 	// 3. Is the CID in the DHT?
 	// 4. Does the peer respond that it has the given data over Bitswap?
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Access-Control-Allow-Origin", "*")
+	http.DefaultServeMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		log.Print("Received request...")
+		// w.Header().Add("Access-Control-Allow-Origin", "*")
 		data, err := d.runCheck(r.URL.Query())
 		if err == nil {
+			log.Print("Successfully ran check")
 			w.Header().Add("Content-Type", "application/json")
-			_ = json.NewEncoder(w).Encode(data)
+			err = json.NewEncoder(w).Encode(data)
+			if err != nil {
+				log.Printf("Error encoding response: %v", err)
+			} else {
+				log.Println("Response successfully sent")
+			}
 		} else {
+			log.Print("Error running check...")
 			w.WriteHeader(http.StatusInternalServerError)
-			_, _ = w.Write([]byte(err.Error()))
+			_, writeErr := w.Write([]byte(err.Error()))
+			if writeErr != nil {
+				log.Printf("Error writing error response: %v", writeErr)
+			}
+			log.Printf("Error running check: %v", err)
 		}
 	})
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*", "http://localhost:5555", "http://127.0.0.1:5555"},
+		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodDelete, http.MethodOptions},
+		AllowCredentials: false,
+	})
+	handler := c.Handler(http.DefaultServeMux)
 
 	done := make(chan error, 1)
 	go func() {
 		defer close(done)
-		done <- http.Serve(l, nil)
+		done <- http.Serve(l, handler)
 	}()
 
 	select {
