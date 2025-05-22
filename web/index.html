@@ -46,6 +46,8 @@
                     <input class="db w-100 mt2" type="range" id="timeoutSeconds" name="timeoutSeconds" min="5" max="300" value="60" step="1">
                     <output class="db fw6 f6" for="timeoutSeconds" id="timeoutValue">60</output>
                 </div>
+                <label class="dib mt3 mr3 f6 fw6" for="httpRetrieval">Check HTTP retrieval</label>
+                <input class="di pa2" type="checkbox" id="httpRetrieval" name="httpRetrieval">
             </details>
             <div class="db mv4">
                 <button id="submit" type="submit" class="flex items-center db ph3 pv2 link pointer glow o-90 bg-blue white fw6 f5 bn br2">
@@ -258,10 +260,15 @@
                 }
             }
             if (!foundAddr) {
-                outText += "❌ Could not find the given multiaddr in the dht. Instead found:\n"
-                for (const key in respObj.PeerFoundInDHT) {
-                    outText += "\t" + key + "\n"
-                }
+                outText += "❌ Could not find the given multiaddr in the dht."
+		if (Object.keys(respObj.PeerFoundInDHT).length > 0) {
+		  outText += " Instead found:\n"
+                  for (const key in respObj.PeerFoundInDHT) {
+                      outText += "\t" + key + "\n"
+                  }
+		} else {
+		  outText += " No other addresses were found.\n"
+		}
             }
         }
         
@@ -276,14 +283,26 @@
             outText += "❌ Could not find the multihash in DHT or IPNI\n"
         }
 
-        if (respObj.DataAvailableOverBitswap.Error !== "") {
-            outText += "❌ There was an error downloading the CID from the peer: " + respObj.DataAvailableOverBitswap.Error + "\n"
-        } else if (respObj.DataAvailableOverBitswap.Responded !== true) {
-            outText += "❌ The peer did not quickly respond if it had the CID\n"
-        } else if (respObj.DataAvailableOverBitswap.Found === true) {
-            outText += "✅ The peer responded that it has the CID\n"
+        if (respObj.DataAvailableOverHTTP.Enabled === false) {
+          if (respObj.DataAvailableOverBitswap.Error !== "") {
+              outText += "❌ There was an error downloading the CID from the peer via Bitswap: " + respObj.DataAvailableOverBitswap.Error + "\n"
+          } else if (respObj.DataAvailableOverBitswap.Responded !== true) {
+              outText += "❌ The peer did not quickly respond if it had the CID over Bitswap\n"
+          } else if (respObj.DataAvailableOverBitswap.Found === true) {
+              outText += "✅ The peer responded that it has the CID\n"
+          } else {
+              outText += "❌ The peer responded that it does not have the CID\n"
+          }
         } else {
-            outText += "❌ The peer responded that it does not have the CID\n"
+          if (respObj.DataAvailableOverHTTP.Error !== "") {
+              outText += "❌ There was an error downloading the CID via HTTP: " + respObj.DataAvailableOverHTTP.Error + "\n"
+          } else if (respObj.DataAvailableOverHTTP.Connected !== true) {
+              outText += "❌ HTTP connection was unsuccessful to the HTTP endpoint\n"
+          } else if (respObj.DataAvailableOverHTTP.Found === true) {
+              outText += "✅ The HTTP endpoint responded that it has the CID\n"
+          } else {
+              outText += "❌ The HTTP endpoint responded that it does not have the CID\n"
+          }
         }
         return outText
     }
@@ -296,7 +315,7 @@
         }
 
         const successfulProviders = resp.reduce((acc, provider) => {
-            if(provider.ConnectionError === '' && provider.DataAvailableOverBitswap?.Found === true) {
+            if(provider.ConnectionError === '' && (provider.DataAvailableOverBitswap?.Found === true || provider.DataAvailableOverHTTP.Found === true)) {
                 acc++
             }
             return acc
@@ -328,6 +347,7 @@
 
             outText += `\n\t${provider.ID}\n\t\tConnected: ${couldConnect ? "✅" : `❌ ${provider.ConnectionError.replaceAll('\n', '\n\t\t')}` }`
             outText += couldConnect ? `\n\t\tBitswap Check: ${provider.DataAvailableOverBitswap.Found ? `✅` : "❌"} ${provider.DataAvailableOverBitswap.Error || ''}` : ''
+            outText += couldConnect ? `\n\t\tHTTP Check: ${provider.DataAvailableOverHTTP.Found ? `✅` : "❌"} ${provider.DataAvailableOverHTTP.Error || ''}` : ''
             outText += (couldConnect && provider.ConnectionMaddrs) ? `\n\t\tSuccessful Connection Multiaddr${provider.ConnectionMaddrs.length > 1 ? 's' : ''}:\n\t\t\t${provider.ConnectionMaddrs?.join('\n\t\t\t') || ''}` : ''
             outText += (provider.Addrs.length > 0) ? `\n\t\tPeer Multiaddrs:\n\t\t\t${provider.Addrs.join('\n\t\t\t')}` : ''
             outText += (typeof provider.Source === 'undefined') ? '' : `\n\t\tFound in: ${provider.Source}`
