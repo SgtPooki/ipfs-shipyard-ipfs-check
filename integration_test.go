@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	bsnet "github.com/ipfs/boxo/bitswap/network"
+	bsnet "github.com/ipfs/boxo/bitswap/network/bsnet"
 	bsserver "github.com/ipfs/boxo/bitswap/server"
 	"github.com/ipfs/boxo/blockstore"
 	blocks "github.com/ipfs/go-block-format"
@@ -15,8 +15,6 @@ import (
 	"github.com/ipfs/ipfs-check/test"
 	"github.com/libp2p/go-libp2p"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
-	mplex "github.com/libp2p/go-libp2p-mplex"
-	routinghelpers "github.com/libp2p/go-libp2p-routing-helpers"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/core/protocol"
@@ -49,8 +47,6 @@ func TestBasicIntegration(t *testing.T) {
 		require.NoError(t, err)
 
 		queryHost, err := libp2p.New(
-			libp2p.DefaultMuxers,
-			libp2p.Muxer(mplex.ID, mplex.DefaultTransport),
 			libp2p.ConnectionManager(c),
 			libp2p.ResourceManager(rm),
 			libp2p.EnableHolePunching(),
@@ -68,9 +64,7 @@ func TestBasicIntegration(t *testing.T) {
 			dht:          queryDHT,
 			dhtMessenger: pm,
 			createTestHost: func() (host.Host, error) {
-				return libp2p.New(libp2p.DefaultMuxers,
-					libp2p.Muxer(mplex.ID, mplex.DefaultTransport),
-					libp2p.EnableHolePunching())
+				return libp2p.New(libp2p.EnableHolePunching())
 			},
 		}
 		_ = startServer(ctx, d, ":1234", "", "")
@@ -79,7 +73,7 @@ func TestBasicIntegration(t *testing.T) {
 	h, err := libp2p.New()
 	require.NoError(t, err)
 	defer h.Close()
-	bn := bsnet.NewFromIpfsHost(h, routinghelpers.Null{})
+	bn := bsnet.NewFromIpfsHost(h)
 	bstore := blockstore.NewBlockstore(dssync.MutexWrap(datastore.NewMapDatastore()))
 	bswap := bsserver.New(ctx, bn, bstore)
 	bn.Start(bswap)

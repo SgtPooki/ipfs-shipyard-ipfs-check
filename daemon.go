@@ -16,7 +16,6 @@ import (
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p-kad-dht/fullrt"
 	dhtpb "github.com/libp2p/go-libp2p-kad-dht/pb"
-	mplex "github.com/libp2p/go-libp2p-mplex"
 	record "github.com/libp2p/go-libp2p-record"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/peer"
@@ -67,8 +66,6 @@ func newDaemon(ctx context.Context, acceleratedDHT bool) (*daemon, error) {
 	promRegistry := prometheus.NewRegistry()
 
 	h, err := libp2p.New(
-		libp2p.DefaultMuxers,
-		libp2p.Muxer(mplex.ID, mplex.DefaultTransport),
 		libp2p.ConnectionManager(c),
 		libp2p.ConnectionGater(&privateAddrFilterConnectionGater{}),
 		libp2p.ResourceManager(rm),
@@ -116,8 +113,6 @@ func newDaemon(ctx context.Context, acceleratedDHT bool) (*daemon, error) {
 			// See https://github.com/libp2p/go-libp2p/issues/2941
 			return libp2p.New(
 				libp2p.ConnectionGater(&privateAddrFilterConnectionGater{}),
-				libp2p.DefaultMuxers,
-				libp2p.Muxer("/mplex/6.7.0", mplex.DefaultTransport),
 				libp2p.EnableHolePunching(),
 				libp2p.UserAgent(userAgent),
 			)
