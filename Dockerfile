@@ -1,5 +1,5 @@
 # Builder
-FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:1.22-bookworm AS builder
+FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:1.24-bookworm AS builder
 
 LABEL org.opencontainers.image.source=https://github.com/ipfs/ipfs-check
 LABEL org.opencontainers.image.description="Check if you can find your content on IPFS"
@@ -7,10 +7,9 @@ LABEL org.opencontainers.image.licenses=MIT+APACHE_2.0
 
 ARG TARGETPLATFORM TARGETOS TARGETARCH
 
-ENV GOPATH      /go
-ENV SRC_PATH    $GOPATH/src/github.com/ipfs/ipfs-check
-ENV GO111MODULE on
-ENV GOPROXY     https://proxy.golang.org
+ENV GOPATH=/go \
+    SRC_PATH=$GOPATH/src/github.com/ipfs/ipfs-check \
+    GOPROXY=https://proxy.golang.org
 
 COPY go.* $SRC_PATH/
 WORKDIR $SRC_PATH
@@ -26,9 +25,9 @@ RUN apt-get update && \
   apt-get install --no-install-recommends -y tini ca-certificates curl && \
   rm -rf /var/lib/apt/lists/*
 
-ENV GOPATH      /go
-ENV SRC_PATH    $GOPATH/src/github.com/ipfs/ipfs-check
-ENV DATA_PATH   /data/ipfs-check
+ENV GOPATH=/go \
+    SRC_PATH=$GOPATH/src/github.com/ipfs/ipfs-check \
+    DATA_PATH=/data/ipfs-check
 
 COPY --from=builder $GOPATH/bin/ipfs-check /usr/local/bin/ipfs-check
 
