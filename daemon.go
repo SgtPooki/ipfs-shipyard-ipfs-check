@@ -223,7 +223,7 @@ func (d *daemon) runCidCheck(ctx context.Context, cidKey cid.Cid, ipniURL string
 			defer wg.Done()
 			// Get http retrieval out of the way if this is such
 			// provider.
-			httpInfo, otherInfo := network.SplitHTTPAddrs(provider)
+			httpInfo, libp2pInfo := network.SplitHTTPAddrs(provider)
 			if len(httpInfo.Addrs) > 0 && httpRetrieval {
 
 				provOutput := providerOutput{
@@ -260,13 +260,13 @@ func (d *daemon) runCidCheck(ctx context.Context, cidKey cid.Cid, ipniURL string
 				// Do not continue processing if there are no
 				// other addresses as we would trigger dht
 				// lookups etc.
-				if len(otherInfo.Addrs) == 0 {
+				if len(libp2pInfo.Addrs) == 0 {
 					return
 				}
 			}
 
 			// process non-http providers addresses.
-			provider = otherInfo
+			provider = libp2pInfo
 
 			outputAddrs := []string{}
 			if len(provider.Addrs) > 0 {
@@ -386,7 +386,7 @@ func (d *daemon) runPeerCheck(ctx context.Context, ma multiaddr.Multiaddr, ai pe
 		return out, err
 	}
 
-	httpInfo, otherInfo := network.SplitHTTPAddrs(ai)
+	httpInfo, libp2pInfo := network.SplitHTTPAddrs(ai)
 
 	// If they provided an http address and enabled retrieval, try that.
 	if len(httpInfo.Addrs) > 0 && httpRetrieval {
@@ -412,7 +412,7 @@ func (d *daemon) runPeerCheck(ctx context.Context, ma multiaddr.Multiaddr, ai pe
 	var connectionFailed bool
 
 	// If this is a non-HTTP peer, try with DHT addresses
-	if len(otherInfo.Addrs) == 0 {
+	if len(libp2pInfo.Addrs) == 0 {
 		if peerAddrDHTErr != nil {
 			// PeerID is not resolvable via the DHT
 			connectionFailed = true
@@ -425,7 +425,7 @@ func (d *daemon) runPeerCheck(ctx context.Context, ma multiaddr.Multiaddr, ai pe
 				log.Println(fmt.Errorf("error parsing multiaddr %s: %w", a, err))
 				continue
 			}
-			otherInfo.Addrs = append(otherInfo.Addrs, ma)
+			libp2pInfo.Addrs = append(libp2pInfo.Addrs, ma)
 		}
 	}
 
@@ -433,9 +433,9 @@ func (d *daemon) runPeerCheck(ctx context.Context, ma multiaddr.Multiaddr, ai pe
 		// Test Is the target connectable
 		dialCtx, dialCancel := context.WithTimeout(ctx, time.Second*120)
 
-		_ = testHost.Connect(dialCtx, otherInfo)
+		_ = testHost.Connect(dialCtx, libp2pInfo)
 		// Call NewStream to force NAT hole punching. see https://github.com/libp2p/go-libp2p/issues/2714
-		_, connErr := testHost.NewStream(dialCtx, otherInfo.ID, "/ipfs/bitswap/1.2.0", "/ipfs/bitswap/1.1.0", "/ipfs/bitswap/1.0.0", "/ipfs/bitswap")
+		_, connErr := testHost.NewStream(dialCtx, libp2pInfo.ID, "/ipfs/bitswap/1.2.0", "/ipfs/bitswap/1.1.0", "/ipfs/bitswap/1.0.0", "/ipfs/bitswap")
 		dialCancel()
 		if connErr != nil {
 			out.ConnectionError = connErr.Error()
