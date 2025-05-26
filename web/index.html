@@ -283,7 +283,7 @@
             outText += "❌ Could not find the multihash in DHT or IPNI\n"
         }
 
-        if (respObj.DataAvailableOverHTTP.Enabled === false) {
+        if (respObj.DataAvailableOverBitswap.Enabled === true) {
           if (respObj.DataAvailableOverBitswap.Error !== "") {
               outText += "❌ There was an error downloading the CID from the peer via Bitswap: " + respObj.DataAvailableOverBitswap.Error + "\n"
           } else if (respObj.DataAvailableOverBitswap.Responded !== true) {
@@ -293,7 +293,9 @@
           } else {
               outText += "❌ The peer responded that it does not have the CID\n"
           }
-        } else {
+        }
+
+        if (respObj.DataAvailableOverHTTP.Enabled === true) {
           if (respObj.DataAvailableOverHTTP.Error !== "") {
               outText += "❌ There was an error downloading the CID via HTTP: " + respObj.DataAvailableOverHTTP.Error + "\n"
           } else if (respObj.DataAvailableOverHTTP.Connected !== true) {
@@ -353,9 +355,16 @@
         for (const provider of resp) {
             const couldConnect = provider.ConnectionError === ''
 
-            outText += `\n\t${provider.ID}\n\t\tConnected: ${couldConnect ? "✅" : `❌ ${provider.ConnectionError.replaceAll('\n', '\n\t\t')}` }`
-            outText += couldConnect ? `\n\t\tBitswap Check: ${provider.DataAvailableOverBitswap.Found ? `✅` : "❌"} ${provider.DataAvailableOverBitswap.Error || ''}` : ''
-            outText += couldConnect ? `\n\t\tHTTP Check: ${provider.DataAvailableOverHTTP.Found ? `✅` : "❌"} ${provider.DataAvailableOverHTTP.Error || ''}` : ''
+            if (provider.DataAvailableOverBitswap.Enabled === true) {
+	      outText += `\n\t${provider.ID}\n\t\tLibp2p connected: ${couldConnect ? "✅" : `❌ ${provider.ConnectionError.replaceAll('\n', '\n\t\t')}` }`
+              outText += couldConnect ? `\n\t\tBitswap Check: ${provider.DataAvailableOverBitswap.Found ? `✅` : "❌"} ${provider.DataAvailableOverBitswap.Error || ''}` : ''
+            }
+            if (provider.DataAvailableOverHTTP.Enabled === true) {
+              const httpRes = provider.DataAvailableOverHTTP
+              outText += `\n\t\tHTTP Connected: ${httpRes.Connected ? '✅' : '❌'} ${provider.DataAvailableOverHTTP.Error || ''}`
+	      outText += `\n\t\tHTTP HEAD request: ${httpRes.Requested ? '✅' : '❌'} ${provider.DataAvailableOverHTTP.Error || ''}`
+	      outText += `\n\t\tHTTP Found: ${httpRes.Found ? '✅' : '❌'} ${provider.DataAvailableOverHTTP.Error || ''}`
+            }
             outText += (couldConnect && provider.ConnectionMaddrs) ? `\n\t\tSuccessful Connection Multiaddr${provider.ConnectionMaddrs.length > 1 ? 's' : ''}:\n\t\t\t${provider.ConnectionMaddrs?.join('\n\t\t\t') || ''}` : ''
             outText += (provider.Addrs.length > 0) ? `\n\t\tPeer Multiaddrs:\n\t\t\t${provider.Addrs.join('\n\t\t\t')}` : ''
             outText += (typeof provider.Source === 'undefined') ? '' : `\n\t\tFound in: ${provider.Source}`

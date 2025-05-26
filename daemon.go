@@ -229,10 +229,12 @@ func (d *daemon) runCidCheck(ctx context.Context, cidKey cid.Cid, ipniURL string
 				provOutput := providerOutput{
 					ID: provider.ID.String(),
 					DataAvailableOverBitswap: BitswapCheckOutput{
-						Error: "not a bitswap endpoint",
+						Enabled: false,
 					},
-					DataAvailableOverHTTP: HTTPCheckOutput{},
-					Source:                src,
+					DataAvailableOverHTTP: HTTPCheckOutput{
+						Enabled: true,
+					},
+					Source: src,
 				}
 				for _, ma := range httpInfo.Addrs {
 					provOutput.Addrs = append(provOutput.Addrs, ma.String())
@@ -290,11 +292,13 @@ func (d *daemon) runCidCheck(ctx context.Context, cidKey cid.Cid, ipniURL string
 			}
 
 			provOutput := providerOutput{
-				ID:                       provider.ID.String(),
-				Addrs:                    outputAddrs,
-				DataAvailableOverBitswap: BitswapCheckOutput{},
+				ID:    provider.ID.String(),
+				Addrs: outputAddrs,
+				DataAvailableOverBitswap: BitswapCheckOutput{
+					Enabled: true,
+				},
 				DataAvailableOverHTTP: HTTPCheckOutput{
-					Error: "not an HTTP endpoint",
+					Enabled: false,
 				},
 				Source: src,
 			}
@@ -399,13 +403,13 @@ func (d *daemon) runPeerCheck(ctx context.Context, ma multiaddr.Multiaddr, ai pe
 			out.ConnectionMaddrs = append(out.ConnectionMaddrs, ma.String())
 		}
 		out.DataAvailableOverBitswap = BitswapCheckOutput{
-			Error: "peer multiaddress is an HTTP endpoint",
+			Enabled: false,
 		}
 		return out, nil
 	}
 
 	out.DataAvailableOverHTTP = HTTPCheckOutput{
-		Error: "peer multiaddress is not an HTTP endpoint or HTTP check not enabled",
+		Enabled: false,
 	}
 
 	// non-http peers. Try to connect via p2p etc.
@@ -455,6 +459,7 @@ func (d *daemon) runPeerCheck(ctx context.Context, ma multiaddr.Multiaddr, ai pe
 }
 
 type BitswapCheckOutput struct {
+	Enabled   bool
 	Duration  time.Duration
 	Found     bool
 	Responded bool
@@ -463,7 +468,9 @@ type BitswapCheckOutput struct {
 
 func checkBitswapCID(ctx context.Context, host host.Host, c cid.Cid, ma multiaddr.Multiaddr) BitswapCheckOutput {
 	log.Printf("Start of Bitswap check for cid %s by attempting to connect to ma: %v with the peer: %s", c, ma, host.ID())
-	out := BitswapCheckOutput{}
+	out := BitswapCheckOutput{
+		Enabled: true,
+	}
 	start := time.Now()
 
 	bsOut, err := vole.CheckBitswapCID(ctx, host, c, ma, false)
@@ -590,9 +597,11 @@ func checkHTTPRetrieval(ctx context.Context, host host.Host, c cid.Cid, pinfo pe
 }
 
 func peerAddrsInDHT(ctx context.Context, d kademlia, messenger *dhtpb.ProtocolMessenger, p peer.ID) (map[string]int, error) {
+	addrMap := make(map[string]int)
+
 	closestPeers, err := d.GetClosestPeers(ctx, string(p))
 	if err != nil {
-		return nil, err
+		return addrMap, err
 	}
 	resCh := make(chan *peer.AddrInfo, len(closestPeers))
 
@@ -612,10 +621,9 @@ func peerAddrsInDHT(ctx context.Context, d kademlia, messenger *dhtpb.ProtocolMe
 	close(resCh)
 
 	if numSuccessfulResponses == 0 {
-		return nil, fmt.Errorf("host had trouble querying the DHT")
+		return addrMap, fmt.Errorf("host had trouble querying the DHT")
 	}
 
-	addrMap := make(map[string]int)
 	for r := range resCh {
 		if r == nil {
 			continue
