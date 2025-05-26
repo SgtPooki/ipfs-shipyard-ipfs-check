@@ -261,14 +261,14 @@
             }
             if (!foundAddr) {
                 outText += "❌ Could not find the given multiaddr in the dht."
-		if (Object.keys(respObj.PeerFoundInDHT).length > 0) {
-		  outText += " Instead found:\n"
+                if (Object.keys(respObj.PeerFoundInDHT).length > 0) {
+                  outText += " Instead found:\n"
                   for (const key in respObj.PeerFoundInDHT) {
                       outText += "\t" + key + "\n"
                   }
-		} else {
-		  outText += " No other addresses were found.\n"
-		}
+                } else {
+                  outText += " No other addresses were found.\n"
+                }
             }
         }
         
