@@ -323,22 +323,30 @@
 
         const failedProviders = resp.length - successfulProviders
 
-        // Show providers without connection errors first
+        // Show providers with the data first, followed by reachable providers, then by those with addresses
         resp.sort((a, b) => {
+            // First check if either has data available
+            const aHasData = a.DataAvailableOverBitswap?.Found || a.DataAvailableOverHTTP?.Found
+            const bHasData = b.DataAvailableOverBitswap?.Found || b.DataAvailableOverHTTP?.Found
+
+            if (aHasData && !bHasData) return -1
+            if (!aHasData && bHasData) return 1
+
+            // Then check connection errors
             if (a.ConnectionError === '' && b.ConnectionError !== '') {
                 return -1;
             } else if (a.ConnectionError !== '' && b.ConnectionError === '') {
                 return 1;
             }
 
-            // If both have a connection error, list the one with addresses first
+            // Finally, show providers with addresses first
             if(a.Addrs.length > 0 && b.Addrs.length === 0) {
                 return -1
             } else if(a.Addrs.length === 0 && b.Addrs.length > 0) {
                 return 1
-            } else {
-                return 0
             }
+
+            return 0
         })
 
         outText += `${successfulProviders > 0 ? '✅' : '❌'} Found ${successfulProviders} working providers (out of ${resp.length} provider records sampled from Amino DHT and IPNI) that could be connected to and had the CID available over Bitswap:`
