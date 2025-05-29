@@ -354,14 +354,14 @@
         outText += `${successfulProviders > 0 ? '✅' : '❌'} Found ${successfulProviders} working providers (out of ${resp.length} provider records sampled from Amino DHT and IPNI) that could be connected to and had the CID available over Bitswap:`
         for (const provider of resp) {
             const couldConnect = provider.ConnectionError === ''
-
+            outText += `\n\t${provider.ID}\n`
             if (provider.DataAvailableOverBitswap.Enabled === true) {
-	      outText += `\n\t${provider.ID}\n\t\tLibp2p connected: ${couldConnect ? "✅" : `❌ ${provider.ConnectionError.replaceAll('\n', '\n\t\t')}` }`
+	      outText += `\t\tLibp2p connected: ${couldConnect ? "✅" : `❌ ${provider.ConnectionError.replaceAll('\n', '\n\t\t')}` }`
               outText += couldConnect ? `\n\t\tBitswap Check: ${provider.DataAvailableOverBitswap.Found ? `✅` : "❌"} ${provider.DataAvailableOverBitswap.Error || ''}` : ''
             }
             if (provider.DataAvailableOverHTTP.Enabled === true) {
               const httpRes = provider.DataAvailableOverHTTP
-              outText += `\n\t\tHTTP Connected: ${httpRes.Connected ? '✅' : '❌'} ${provider.DataAvailableOverHTTP.Error || ''}`
+              outText += `\t\tHTTP Connected: ${httpRes.Connected ? '✅' : '❌'} ${provider.DataAvailableOverHTTP.Error || ''}`
 	      outText += `\n\t\tHTTP HEAD request: ${httpRes.Requested ? '✅' : '❌'} ${provider.DataAvailableOverHTTP.Error || ''}`
 	      outText += `\n\t\tHTTP Found: ${httpRes.Found ? '✅' : '❌'} ${provider.DataAvailableOverHTTP.Error || ''}`
             }
