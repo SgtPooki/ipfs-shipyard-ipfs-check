@@ -361,8 +361,8 @@
             }
             if (provider.DataAvailableOverHTTP.Enabled === true) {
               const httpRes = provider.DataAvailableOverHTTP
-              outText += `\t\tHTTP Connected: ${httpRes.Connected ? '✅' : '❌'} ${provider.DataAvailableOverHTTP.Error || ''}`
-	      outText += `\n\t\tHTTP HEAD request: ${httpRes.Requested ? '✅' : '❌'} ${provider.DataAvailableOverHTTP.Error || ''}`
+              outText += `\t\tHTTP Connected: ${httpRes.Connected ? '✅' : '❌'}`
+	      outText += `\n\t\tHTTP HEAD request: ${httpRes.Requested ? '✅' : '❌'}`
 	      outText += `\n\t\tHTTP Found: ${httpRes.Found ? '✅' : '❌'} ${provider.DataAvailableOverHTTP.Error || ''}`
             }
             outText += (couldConnect && provider.ConnectionMaddrs) ? `\n\t\tSuccessful Connection Multiaddr${provider.ConnectionMaddrs.length > 1 ? 's' : ''}:\n\t\t\t${provider.ConnectionMaddrs?.join('\n\t\t\t') || ''}` : ''
