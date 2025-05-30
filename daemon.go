@@ -221,21 +221,27 @@ func (d *daemon) runCidCheck(ctx context.Context, cidKey cid.Cid, ipniURL string
 		wg.Add(1)
 		go func(provider peer.AddrInfo, src string) {
 			defer wg.Done()
+
+			provOutput := providerOutput{
+				ID:                       provider.ID.String(),
+				Source:                   src,
+				DataAvailableOverBitswap: BitswapCheckOutput{},
+				DataAvailableOverHTTP:    HTTPCheckOutput{},
+			}
+
+			testHost, err := d.createTestHost()
+			if err != nil {
+				log.Printf("Error creating test host: %v\n", err)
+				return
+			}
+			defer testHost.Close()
+
 			// Get http retrieval out of the way if this is such
 			// provider.
 			httpInfo, libp2pInfo := network.SplitHTTPAddrs(provider)
 			if len(httpInfo.Addrs) > 0 && httpRetrieval {
+				provOutput.DataAvailableOverHTTP.Enabled = true
 
-				provOutput := providerOutput{
-					ID: provider.ID.String(),
-					DataAvailableOverBitswap: BitswapCheckOutput{
-						Enabled: false,
-					},
-					DataAvailableOverHTTP: HTTPCheckOutput{
-						Enabled: true,
-					},
-					Source: src,
-				}
 				for _, ma := range httpInfo.Addrs {
 					provOutput.Addrs = append(provOutput.Addrs, ma.String())
 				}
@@ -255,14 +261,15 @@ func (d *daemon) runCidCheck(ctx context.Context, cidKey cid.Cid, ipniURL string
 					provOutput.ConnectionMaddrs = append(provOutput.ConnectionMaddrs, ma.String())
 				}
 
-				mu.Lock()
-				out = append(out, provOutput)
-				mu.Unlock()
-
 				// Do not continue processing if there are no
 				// other addresses as we would trigger dht
 				// lookups etc.
 				if len(libp2pInfo.Addrs) == 0 {
+					provOutput.DataAvailableOverBitswap.Enabled = false
+					mu.Lock()
+					out = append(out, provOutput)
+					mu.Unlock()
+
 					return
 				}
 			}
@@ -291,24 +298,8 @@ func (d *daemon) runCidCheck(ctx context.Context, cidKey cid.Cid, ipniURL string
 				}
 			}
 
-			provOutput := providerOutput{
-				ID:    provider.ID.String(),
-				Addrs: outputAddrs,
-				DataAvailableOverBitswap: BitswapCheckOutput{
-					Enabled: true,
-				},
-				DataAvailableOverHTTP: HTTPCheckOutput{
-					Enabled: false,
-				},
-				Source: src,
-			}
-
-			testHost, err := d.createTestHost()
-			if err != nil {
-				log.Printf("Error creating test host: %v\n", err)
-				return
-			}
-			defer testHost.Close()
+			provOutput.Addrs = append(provOutput.Addrs, outputAddrs...)
+			provOutput.DataAvailableOverBitswap.Enabled = true
 
 			// Test Is the target connectable
 			dialCtx, dialCancel := context.WithTimeout(ctx, time.Second*15)
