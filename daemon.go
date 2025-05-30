@@ -42,6 +42,7 @@ type daemon struct {
 	dhtMessenger   *dhtpb.ProtocolMessenger
 	createTestHost func() (host.Host, error)
 	promRegistry   *prometheus.Registry
+	httpSkipVerify bool
 }
 
 const (
@@ -252,7 +253,7 @@ func (d *daemon) runCidCheck(ctx context.Context, cidKey cid.Cid, ipniURL string
 					return
 				}
 				defer testHost.Close()
-				httpCheck := checkHTTPRetrieval(ctx, testHost, cidKey, httpInfo)
+				httpCheck := checkHTTPRetrieval(ctx, testHost, cidKey, httpInfo, d.httpSkipVerify)
 				provOutput.DataAvailableOverHTTP = httpCheck
 				if !httpCheck.Connected {
 					provOutput.ConnectionError = httpCheck.Error
@@ -385,7 +386,7 @@ func (d *daemon) runPeerCheck(ctx context.Context, ma multiaddr.Multiaddr, ai pe
 
 	// If they provided an http address and enabled retrieval, try that.
 	if len(httpInfo.Addrs) > 0 && httpRetrieval {
-		httpCheck := checkHTTPRetrieval(ctx, testHost, c, httpInfo)
+		httpCheck := checkHTTPRetrieval(ctx, testHost, c, httpInfo, d.httpSkipVerify)
 		out.DataAvailableOverHTTP = httpCheck
 		if !httpCheck.Connected {
 			out.ConnectionError = httpCheck.Error
@@ -520,7 +521,7 @@ func supportsHEAD(pstore peerstore.Peerstore, p peer.ID) bool {
 	return ok && b
 }
 
-func checkHTTPRetrieval(ctx context.Context, host host.Host, c cid.Cid, pinfo peer.AddrInfo) HTTPCheckOutput {
+func checkHTTPRetrieval(ctx context.Context, host host.Host, c cid.Cid, pinfo peer.AddrInfo, skipVerify bool) HTTPCheckOutput {
 	log.Printf("Start of HTTP check for cid %s by attempting to connect to %s", c, pinfo)
 
 	out := HTTPCheckOutput{
@@ -530,7 +531,7 @@ func checkHTTPRetrieval(ctx context.Context, host host.Host, c cid.Cid, pinfo pe
 	htnet := httpnet.New(host,
 		httpnet.WithUserAgent(userAgent),
 		httpnet.WithResponseHeaderTimeout(5*time.Second), // default: 10
-		httpnet.WithInsecureSkipVerify(true),
+		httpnet.WithInsecureSkipVerify(skipVerify),
 		httpnet.WithHTTPWorkers(1),
 	)
 	defer htnet.Stop()

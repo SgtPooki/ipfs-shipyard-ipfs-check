@@ -161,6 +161,7 @@ func TestBasicIntegration(t *testing.T) {
 			createTestHost: func() (host.Host, error) {
 				return libp2p.New(libp2p.EnableHolePunching())
 			},
+			httpSkipVerify: true,
 		}
 		_ = startServer(ctx, d, ":1234", "", "")
 	}()
