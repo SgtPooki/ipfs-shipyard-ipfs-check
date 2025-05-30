@@ -297,8 +297,9 @@
 
         if (respObj.DataAvailableOverHTTP.Enabled === true) {
           if (respObj.DataAvailableOverHTTP.Error !== "") {
-              outText += "❌ There was an error downloading the CID via HTTP: " + respObj.DataAvailableOverHTTP.Error + "\n"
-          } else if (respObj.DataAvailableOverHTTP.Connected !== true) {
+              outText += "❌ There was an error checking the CID via HTTP: " + respObj.DataAvailableOverHTTP.Error + "\n"
+          }
+	  if (respObj.DataAvailableOverHTTP.Connected !== true) {
               outText += "❌ HTTP connection was unsuccessful to the HTTP endpoint\n"
           } else if (respObj.DataAvailableOverHTTP.Found === true) {
               outText += "✅ The HTTP endpoint responded that it has the CID\n"
