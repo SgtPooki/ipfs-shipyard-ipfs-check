@@ -9,6 +9,7 @@ require (
 	github.com/ipfs/go-block-format v0.2.1
 	github.com/ipfs/go-cid v0.5.0
 	github.com/ipfs/go-datastore v0.8.2
+	github.com/ipfs/go-ipld-format v0.6.1
 	github.com/libp2p/go-libp2p v0.41.1
 	github.com/libp2p/go-libp2p-kad-dht v0.33.0
 	github.com/libp2p/go-libp2p-record v0.3.1
@@ -65,7 +66,6 @@ require (
 	github.com/ipfs/bbloom v0.0.4 // indirect
 	github.com/ipfs/go-ipfs-delay v0.0.1 // indirect
 	github.com/ipfs/go-ipfs-pq v0.0.3 // indirect
-	github.com/ipfs/go-ipld-format v0.6.1 // indirect
 	github.com/ipfs/go-ipld-legacy v0.2.1 // indirect
 	github.com/ipfs/go-log/v2 v2.6.0 // indirect
 	github.com/ipfs/go-metrics-interface v0.3.0 // indirect

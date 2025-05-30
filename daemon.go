@@ -539,6 +539,7 @@ func checkHTTPRetrieval(ctx context.Context, host host.Host, c cid.Cid, pinfo pe
 	htnet := httpnet.New(host,
 		httpnet.WithUserAgent(userAgent),
 		httpnet.WithResponseHeaderTimeout(5*time.Second), // default: 10
+		httpnet.WithInsecureSkipVerify(true),
 		httpnet.WithHTTPWorkers(1),
 	)
 	defer htnet.Stop()
