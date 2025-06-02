@@ -5,7 +5,8 @@
   "description": "frontend ui for ipfs-check",
   "main": "index.js",
   "scripts": {
-    "build": "tailwindcss -i ./input.css -o ./output.css --minify"
+    "build": "tailwindcss -i ./input.css -o ./output.css --minify",
+    "dev": "tailwindcss -i ./input.css -o ./output.css --watch"
   },
   "repository": {
     "type": "git",
