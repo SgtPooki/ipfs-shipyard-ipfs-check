@@ -11,7 +11,7 @@
 <body class="font-sans bg-gray-50 text-gray-900 m-0">
 <header>
     <h1 class="inline-block px-3 py-3 m-0 leading-tight">
-        <a class="no-underline block text-lg font-bold text-gray-900" href="https://ipfs.io">IPFS <span class="text-teal-500 font-semibold">Check</span></a>
+        <a class="no-underline block text-lg font-bold text-gray-900" href="https://ipfs.io">IPFS <span class="text-ipfs-teal-500 font-semibold">Check</span></a>
         <span class="block text-xs font-semibold text-gray-600">Have you seen my CID?</span>
     </h1>
 </header>
@@ -51,7 +51,7 @@
                 <input class="inline-block p-2" type="checkbox" id="httpRetrieval" name="httpRetrieval" checked>
             </details>
             <div class="block my-6">
-                <button id="submit" type="submit" class="flex items-center px-6 py-2 no-underline cursor-pointer shadow transition bg-navy-800 hover:bg-navy-900 text-white font-bold text-lg border-0 rounded">
+                <button id="submit" type="submit" class="flex items-center px-6 py-2 no-underline cursor-pointer shadow transition bg-ipfs-navy-800 hover:bg-ipfs-navy-900 text-white font-bold text-lg border-0 rounded">
                   <svg id="loading-spinner" class="hidden animate-spin mr-2 h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -242,19 +242,19 @@
 
         // Connection status
         if (respObj.ConnectionError !== "") {
-            outHtml += `<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded flex items-center'>${iconCross}<span>Could not connect to multiaddr: <span class='font-mono'>${respObj.ConnectionError}</span></span></div>`
+            outHtml += `<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded flex gap-x-2 items-center'>${iconCross}<span>Could not connect to multiaddr: <span class='font-mono'>${respObj.ConnectionError}</span></span></div>`
         } else {
             const madrs = respObj?.ConnectionMaddrs
-            outHtml += `<div class='bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded flex items-center'>${iconCheck}<span>Successfully connected to multiaddr${madrs?.length > 1 ? 's' : '' }:<br><span class='font-mono text-xs block ml-6'>${madrs.join('<br>')}</span></span></div>`
+            outHtml += `<div class='bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded flex gap-x-2 items-center'>${iconCheck}<span>Successfully connected to multiaddr${madrs?.length > 1 ? 's' : '' }:<br><span class='font-mono text-xs block ml-6'>${madrs.join('<br>')}</span></span></div>`
         }
 
         // DHT status
         if (multiaddr.indexOf("/p2p/") === 0 && multiaddr.lastIndexOf("/") === 4) {
             // only peer id passed with /p2p/PeerID
             if (Object.keys(respObj.PeerFoundInDHT).length === 0) {
-                outHtml += `<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded flex items-center'>${iconCross}<span>Could not find any multiaddrs in the DHT</span></div>`
+                outHtml += `<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded flex gap-x-2 items-center'>${iconCross}<span>Could not find any multiaddrs in the DHT</span></div>`
             } else {
-                outHtml += `<div class='bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded flex items-center'>${iconCheck}<span>Found multiaddrs advertised in the DHT:<br><span class='font-mono text-xs block ml-6'>${Object.keys(respObj.PeerFoundInDHT).join('<br>')}</span></span></div>`
+                outHtml += `<div class='bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded flex gap-x-2 items-center'>${iconCheck}<span>Found multiaddrs advertised in the DHT:<br><span class='font-mono text-xs block ml-6'>${Object.keys(respObj.PeerFoundInDHT).join('<br>')}</span></span></div>`
             }
         } else {
             // a proper maddr with an IP was passed
@@ -262,7 +262,7 @@
             for (const key in respObj.PeerFoundInDHT) {
                 if (key === addrPart) {
                     foundAddr = true
-                    outHtml += `<div class='bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded flex items-center'>${iconCheck}<span>Found multiaddr with <span class='font-bold'>${respObj.PeerFoundInDHT[key]}</span> DHT peers</span></div>`
+                    outHtml += `<div class='bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded flex gap-x-2 items-center'>${iconCheck}<span>Found multiaddr with <span class='font-bold'>${respObj.PeerFoundInDHT[key]}</span> DHT peers</span></div>`
                     break
                 }
             }
@@ -273,15 +273,15 @@
                 } else {
                   alt = '<br>No other addresses were found.'
                 }
-                outHtml += `<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded flex items-center'>${iconCross}<span>Could not find the given multiaddr in the DHT.${alt}</span></div>`
+                outHtml += `<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded flex gap-x-2 items-center'>${iconCross}<span>Could not find the given multiaddr in the DHT.${alt}</span></div>`
             }
         }
 
         // Provider record
         if (respObj.ProviderRecordFromPeerInDHT === true || respObj.ProviderRecordFromPeerInIPNI === true) {
-            outHtml += `<div class='bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded flex items-center'>${iconCheck}<span>Found multihash advertised in <span class='font-bold'>${respObj.ProviderRecordFromPeerInDHT ? 'DHT' : 'IPNI'}</span></span></div>`
+            outHtml += `<div class='bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded flex gap-x-2 items-center'>${iconCheck}<span>Found multihash advertised in <span class='font-bold'>${respObj.ProviderRecordFromPeerInDHT ? 'DHT' : 'IPNI'}</span></span></div>`
         } else {
-            outHtml += `<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded flex items-center'>${iconCross}<span>Could not find the multihash in DHT or IPNI</span></div>`
+            outHtml += `<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded flex gap-x-2 items-center'>${iconCross}<span>Could not find the multihash in DHT or IPNI</span></div>`
         }
 
         // Bitswap
@@ -373,7 +373,7 @@
             outHtml += `<div class='rounded-lg shadow ${cardBg} p-4 border'>`
             outHtml += `<div class='flex items-center mb-2'>`
             outHtml += `<span class='font-mono text-xs bg-gray-100 px-2 py-1 rounded mr-2 break-all'>${provider.ID}</span>`
-            if (hasBitswap && foundBitswap) outHtml += `<span class='ml-2 px-2 py-1 rounded bg-ipfs-green-100 text-ipfs-green-700 text-xs font-bold'>Bitswap</span>`
+            if (hasBitswap && foundBitswap) outHtml += `<span class='ml-2 px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-bold'>Bitswap</span>`
             if (hasHTTP && foundHTTP) outHtml += `<span class='ml-2 px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs font-bold'>HTTP</span>`
             outHtml += `</div>`
             if (hasBitswap) {
@@ -387,7 +387,7 @@
                 outHtml += `<div class='flex items-center text-sm mb-1 ml-6'>${httpRes.Found ? iconCheck : iconCross}<span>HTTP Found: <span class='font-mono'>${httpRes.Found ? 'Yes' : 'No'}</span> ${provider.DataAvailableOverHTTP.Error || ''}</span></div>`
             }
             outHtml += (couldConnect && provider.ConnectionMaddrs) ? `<div class='text-xs text-gray-600 mt-2'><span class='font-bold'>Successful Connection Multiaddr${provider.ConnectionMaddrs.length > 1 ? 's' : ''}:</span><br><span class='font-mono block ml-4 break-all whitespace-break-spaces'>${provider.ConnectionMaddrs?.join('<br>') || ''}</span></div>` : ''
-            outHtml += (provider.Addrs.length > 0) ? `<div class='text-xs text-gray-600 mt-2'><span class='font-bold'>Peer Multiaddrs:</span><br><span class='font-mono block ml-4 break-all whitespace-break-spaces'>${provider.Addrs.join('<br>')}</span></div>` : ''
+            outHtml += (provider.Addrs?.length > 0) ? `<div class='text-xs text-gray-600 mt-2'><span class='font-bold'>Peer Multiaddrs:</span><br><span class='font-mono block ml-4 break-all whitespace-break-spaces'>${provider.Addrs.join('<br>') || ''}</span></div>` : ''
             outHtml += (typeof provider.Source === 'undefined') ? '' : `<div class='text-xs text-gray-600 mt-2'>Found in: ${provider.Source}</div>`
             outHtml += `</div>`
         }
