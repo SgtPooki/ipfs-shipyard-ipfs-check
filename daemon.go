@@ -353,11 +353,15 @@ func (d *daemon) runPeerCheck(ctx context.Context, ma multiaddr.Multiaddr, ai pe
 	}
 	defer testHost.Close()
 
-	addrMap, peerAddrDHTErr := peerAddrsInDHT(ctx, d.dht, d.dhtMessenger, ai.ID)
-
+	var addrMap map[string]int
+	var peerAddrDHTErr error
 	var inDHT, inIPNI bool
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
+	go func() {
+		addrMap, peerAddrDHTErr = peerAddrsInDHT(ctx, d.dht, d.dhtMessenger, ai.ID)
+		wg.Done()
+	}()
 	go func() {
 		inDHT = providerRecordFromPeerInDHT(ctx, d.dht, c, ai.ID)
 		wg.Done()
