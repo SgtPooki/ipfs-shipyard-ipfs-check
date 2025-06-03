@@ -106,6 +106,8 @@ type providerOutput struct {
 	Addrs                    []string
 	ConnectionMaddrs         []string
 	DataAvailableOverBitswap BitswapCheckOutput
+	DataAvailableOverHTTP    HTTPCheckOutput
+	Source                   string
 }
 ```
 
@@ -116,6 +118,8 @@ The `providerOutput` type contains the following fields:
 - `Addrs`: The multiaddrs of the provider from the DHT.
 - `ConnectionMaddrs`: The multiaddrs that were used to connect to the provider.
 - `DataAvailableOverBitswap`: The result of the Bitswap check.
+- `DataAvailableOverHTTP`: The result of the HTTP check.
+- `Source`: The source of the provider (either "IPNI" or "Amino DHT").
 
 #### Results when a `multiaddr` and a `cid` are passed
 
@@ -123,41 +127,64 @@ The results of the check are expressed by the `peerCheckOutput` type:
 
 ```go
 type peerCheckOutput struct {
-	ConnectionError             string
+	ConnectionError              string
 	PeerFoundInDHT              map[string]int
-	ProviderRecordFromPeerInDHT bool
-	ConnectionMaddrs            []string
-	DataAvailableOverBitswap    BitswapCheckOutput
+	ProviderRecordFromPeerInDHT  bool
+	ProviderRecordFromPeerInIPNI bool
+	ConnectionMaddrs             []string
+	DataAvailableOverBitswap     BitswapCheckOutput
+	DataAvailableOverHTTP        HTTPCheckOutput
 }
 
 type BitswapCheckOutput struct {
+	Enabled   bool
 	Duration  time.Duration
 	Found     bool
 	Responded bool
 	Error     string
 }
+
+type HTTPCheckOutput struct {
+	Enabled   bool
+	Duration  time.Duration
+	Endpoints []multiaddr.Multiaddr
+	Connected bool
+	Requested bool
+	Found     bool
+	Error     string
+}
 ```
 
-1. Is the CID (really multihash) advertised in the DHT by the Passed PeerID (or later IPNI)?
+The check performs several validations:
 
-- `ProviderRecordFromPeerInDHT`
+1. Is the CID advertised in the DHT by the Passed PeerID (or later IPNI)?
+   - `ProviderRecordFromPeerInDHT`: Whether the peer has a provider record in the DHT
+   - `ProviderRecordFromPeerInIPNI`: Whether the peer has a provider record in IPNI
 
-2. Are the peer's addresses discoverable (particularly useful if the announcements are DHT based, but also independently useful)
-
-- `PeerFoundInDHT`
+2. Are the peer's addresses discoverable?
+   - `PeerFoundInDHT`: Map of discovered addresses and their frequency in the DHT
 
 3. Is the peer contactable with the address the user gave us?
+   - `ConnectionError`: Empty if connection successful, otherwise contains the error
+   - `ConnectionMaddrs`: The multiaddrs used to connect (includes both relay and direct addresses if NAT traversal occurred)
 
-- If `ConnectionError` is any empty string, a connection to the peer was successful. Otherwise, it contains the error.
-- If a connection is successful, `ConnectionMaddrs` contains the multiaddrs that were used to connect. If the peer is behind NAT, it will contain both the circuit relay multiaddr and the direct maddr.
+4. Is the data available over Bitswap?
+   - `DataAvailableOverBitswap`: Contains:
+     - `Enabled`: Whether Bitswap check was performed
+     - `Duration`: How long the check took
+     - `Found`: Whether the block was found
+     - `Responded`: Whether the peer responded
+     - `Error`: Any error that occurred
 
-4. Is the address the user gave us present in the DHT?
-
-- If `PeerFoundInDHT` contains the address the user passed in
-
-1. Does the peer say they have at least the block for the CID (doesn't say anything about the rest of any associated DAG) over Bitswap?
-
-- `DataAvailableOverBitswap` contains the duration of the check and whether the peer responded and has the block. If there was an error, `DataAvailableOverBitswap.Error` will contain the error. 
+5. Is the data available over HTTP?
+   - `DataAvailableOverHTTP`: Contains:
+     - `Enabled`: Whether HTTP check was performed
+     - `Duration`: How long the check took
+     - `Endpoints`: List of HTTP multiaddrs
+     - `Connected`: Whether connection was successful
+     - `Requested`: Whether the request was sent
+     - `Found`: Whether the block was found
+     - `Error`: Any error that occurred
 
 ## Metrics
 
