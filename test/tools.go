@@ -28,6 +28,7 @@ func Query(
 	url string,
 	cid string,
 	multiaddr string,
+	flags ...string,
 ) *httpexpect.Object {
 	expectedContentType := "application/json"
 	if url == "https://ipfs-check-backend.ipfs.io" {
@@ -46,6 +47,7 @@ func Query(
 	return e.POST("/check").
 		WithQuery("cid", cid).
 		WithQuery("multiaddr", multiaddr).
+		WithQueryString(strings.Join(flags, "&")).
 		Expect().
 		Status(http.StatusOK).
 		JSON(opts).Object()
@@ -55,6 +57,7 @@ func QueryCid(
 	t *testing.T,
 	url string,
 	cid string,
+	flags ...string,
 ) *httpexpect.Array {
 	expectedContentType := "application/json"
 
@@ -66,6 +69,7 @@ func QueryCid(
 
 	return e.GET("/check").
 		WithQuery("cid", cid).
+		WithQueryString(strings.Join(flags, "&")).
 		Expect().
 		Status(http.StatusOK).
 		JSON(opts).Array()

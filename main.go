@@ -98,10 +98,12 @@ func startServer(ctx context.Context, d *daemon, tcpListener, metricsUsername, m
 	checkHandler := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Access-Control-Allow-Origin", "*")
 
-		maStr := r.URL.Query().Get("multiaddr")
-		cidStr := r.URL.Query().Get("cid")
-		timeoutStr := r.URL.Query().Get("timeoutSeconds")
-		ipniURL := r.URL.Query().Get("ipniIndexer")
+		q := r.URL.Query()
+		maStr := q.Get("multiaddr")
+		cidStr := q.Get("cid")
+		timeoutStr := q.Get("timeoutSeconds")
+		ipniURL := q.Get("ipniIndexer")
+		httpRetrieval := q.Get("httpRetrieval") == "on"
 
 		if cidStr == "" {
 			http.Error(w, "missing 'cid' query parameter", http.StatusBadRequest)
@@ -139,14 +141,14 @@ func startServer(ctx context.Context, d *daemon, tcpListener, metricsUsername, m
 
 		var data interface{}
 		if maStr == "" {
-			data, err = d.runCidCheck(withTimeout, cidKey, ipniURL)
+			data, err = d.runCidCheck(withTimeout, cidKey, ipniURL, httpRetrieval)
 		} else {
 			ma, ai, err400 := parseMultiaddr(maStr)
 			if err400 != nil {
 				http.Error(w, err400.Error(), http.StatusBadRequest)
 				return
 			}
-			data, err = d.runPeerCheck(withTimeout, ma, ai, cidKey, ipniURL)
+			data, err = d.runPeerCheck(withTimeout, ma, ai, cidKey, ipniURL, httpRetrieval)
 		}
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -263,14 +265,14 @@ func getWebAddress(l net.Listener) string {
 	}
 }
 
-func parseMultiaddr(maStr string) (multiaddr.Multiaddr, *peer.AddrInfo, error) {
+func parseMultiaddr(maStr string) (multiaddr.Multiaddr, peer.AddrInfo, error) {
 	ma, err := multiaddr.NewMultiaddr(maStr)
 	if err != nil {
-		return nil, nil, err
+		return nil, peer.AddrInfo{}, err
 	}
 	ai, err := peer.AddrInfoFromP2pAddr(ma)
 	if err != nil {
-		return nil, nil, err
+		return ma, peer.AddrInfo{}, err
 	}
-	return ma, ai, nil
+	return ma, *ai, nil
 }

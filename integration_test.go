@@ -2,6 +2,12 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -12,6 +18,7 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	dssync "github.com/ipfs/go-datastore/sync"
+	ipld "github.com/ipfs/go-ipld-format"
 	"github.com/ipfs/ipfs-check/test"
 	"github.com/libp2p/go-libp2p"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
@@ -19,11 +26,99 @@ import (
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/core/protocol"
 	"github.com/libp2p/go-libp2p/p2p/net/connmgr"
+	multiaddr "github.com/multiformats/go-multiaddr"
 	manet "github.com/multiformats/go-multiaddr/net"
 	"github.com/multiformats/go-multihash"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 )
+
+type trustlessGateway struct {
+	bstore blockstore.Blockstore
+}
+
+// A HTTP server for blocks in a blockstore.
+func (h *trustlessGateway) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	path := r.URL.Path
+	_, cidstr, ok := strings.Cut(path, "/ipfs/")
+	if !ok {
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if cidstr == "bafkqaaa" {
+		rw.WriteHeader(http.StatusOK)
+		return
+	}
+
+	c, err := cid.Parse(cidstr)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	b, err := h.bstore.Get(r.Context(), c)
+	if errors.Is(err, ipld.ErrNotFound{}) {
+		rw.WriteHeader(http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	rw.WriteHeader(http.StatusOK)
+	if r.Method == "HEAD" {
+		return
+	}
+
+	rw.Write(b.RawData())
+}
+
+type httpRouting struct {
+	bstore blockstore.Blockstore
+	addrs  []multiaddr.Multiaddr
+	id     peer.ID
+}
+
+// A HTTP server for blocks in a blockstore.
+func (h *httpRouting) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	path := r.URL.Path
+	_, cidstr, ok := strings.Cut(path, "/routing/v1/providers/")
+	if !ok {
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	c, err := cid.Parse(cidstr)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	_, err = h.bstore.Get(r.Context(), c)
+	if errors.Is(err, ipld.ErrNotFound{}) {
+		rw.WriteHeader(http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	rw.Header().Set("Content-Type", "application/x-ndjson")
+	rw.WriteHeader(http.StatusOK)
+	jaddrs, _ := json.Marshal(h.addrs)
+	resp := `
+{
+  "Schema": "peer",
+  "ID": "` + h.id.String() + `",
+  "Addrs": ` + string(jaddrs) + `,
+  "Protocols": ["transport-ipfs-gateway-http"]
+}
+`
+	fmt.Println(resp)
+	rw.Write([]byte(resp))
+}
 
 func TestBasicIntegration(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -66,6 +161,7 @@ func TestBasicIntegration(t *testing.T) {
 			createTestHost: func() (host.Host, error) {
 				return libp2p.New(libp2p.EnableHolePunching())
 			},
+			httpSkipVerify: true,
 		}
 		_ = startServer(ctx, d, ":1234", "", "")
 	}()
@@ -94,6 +190,30 @@ func TestBasicIntegration(t *testing.T) {
 	mas, err := peer.AddrInfoToP2pAddrs(&peer.AddrInfo{ID: h.ID(), Addrs: h.Addrs()})
 	require.NoError(t, err)
 	hostAddr := mas[0]
+
+	gw := &trustlessGateway{
+		bstore: bstore,
+	}
+	httpServer := httptest.NewUnstartedServer(gw)
+	httpServer.EnableHTTP2 = true
+	httpServer.StartTLS()
+	maddr, err := manet.FromNetAddr(httpServer.Listener.Addr())
+	require.NoError(t, err)
+	httpAddr, err := multiaddr.NewMultiaddr("/https")
+	require.NoError(t, err)
+	peerAddr, err := multiaddr.NewMultiaddr("/p2p/" + h.ID().String())
+	require.NoError(t, err)
+	httpPeerAddr := maddr.Encapsulate(httpAddr).Encapsulate(peerAddr)
+
+	rt := &httpRouting{
+		bstore: bstore,
+		addrs:  []multiaddr.Multiaddr{maddr.Encapsulate(httpAddr)},
+		id:     h.ID(),
+	}
+
+	routingServer := httptest.NewUnstartedServer(rt)
+	routingServer.Start()
+	ipniAddr := "http://" + routingServer.Listener.Addr().String()
 
 	t.Run("Data on reachable peer that's advertised", func(t *testing.T) {
 		testData := []byte(t.Name())
@@ -184,4 +304,35 @@ func TestBasicIntegration(t *testing.T) {
 		res.Value(0).Object().Value("DataAvailableOverBitswap").Object().Value("Found").Boolean().IsTrue()
 		res.Value(0).Object().Value("DataAvailableOverBitswap").Object().Value("Responded").Boolean().IsTrue()
 	})
+
+	t.Run("Data found via HTTP", func(t *testing.T) {
+		testData := []byte(t.Name())
+		mh, err := multihash.Sum(testData, multihash.SHA2_256, -1)
+		require.NoError(t, err)
+		testCid := cid.NewCidV1(cid.Raw, mh)
+		testBlock, err := blocks.NewBlockWithCid(testData, testCid)
+		require.NoError(t, err)
+		err = bstore.Put(ctx, testBlock)
+		require.NoError(t, err)
+
+		obj := test.Query(t, "http://localhost:1234", testCid.String(), httpPeerAddr.String(), "httpRetrieval=on")
+		obj.Value("DataAvailableOverHTTP").Object().Value("Found").Boolean().IsTrue()
+	})
+
+	t.Run("Data found via HTTP with just CID", func(t *testing.T) {
+		testData := []byte(t.Name())
+		mh, err := multihash.Sum(testData, multihash.SHA2_256, -1)
+		require.NoError(t, err)
+		testCid := cid.NewCidV1(cid.Raw, mh)
+		testBlock, err := blocks.NewBlockWithCid(testData, testCid)
+		require.NoError(t, err)
+		err = bstore.Put(ctx, testBlock)
+		require.NoError(t, err)
+
+		fmt.Println(ipniAddr)
+		fmt.Println(httpAddr.String())
+		obj := test.QueryCid(t, "http://localhost:1234", testCid.String(), "httpRetrieval=on", "ipniIndexer="+ipniAddr)
+		obj.Value(0).Object().Value("DataAvailableOverHTTP").Object().Value("Found").Boolean().IsTrue()
+	})
+
 }
