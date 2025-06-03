@@ -54,7 +54,6 @@ const (
 	dhtSource  = "Amino DHT"
 )
 
-// TODO: make this configurable, and add support and trustless retrieval probe for transport-ipfs-gateway-http
 var defaultProtocolFilter = []string{"transport-bitswap", "unknown"}
 
 func newDaemon(ctx context.Context, acceleratedDHT bool) (*daemon, error) {
@@ -345,7 +344,7 @@ type peerCheckOutput struct {
 	DataAvailableOverHTTP        HTTPCheckOutput
 }
 
-// runPeerCheck checks the connectivity and Bitswap availability of a CID from a given peer (either with just peer ID or specific multiaddr)
+// runPeerCheck checks the connectivity and Bitswap/HTTP availability of a CID from a given peer (either with just peer ID or specific multiaddr)
 func (d *daemon) runPeerCheck(ctx context.Context, ma multiaddr.Multiaddr, ai peer.AddrInfo, c cid.Cid, ipniURL string, httpRetrieval bool) (*peerCheckOutput, error) {
 	testHost, err := d.createTestHost()
 	if err != nil {
@@ -657,7 +656,9 @@ func providerRecordFromPeerInDHT(ctx context.Context, d kademlia, c cid.Cid, p p
 }
 
 func providerRecordFromPeerInIPNI(ctx context.Context, ipniURL string, c cid.Cid, p peer.ID) bool {
-	crClient, err := client.New(ipniURL, client.WithStreamResultsRequired())
+	// Since we match on the peer ID, we should also check for HTTP peers
+	protocols := append(defaultProtocolFilter, "transport-ipfs-gateway-http")
+	crClient, err := client.New(ipniURL, client.WithStreamResultsRequired(), client.WithProtocolFilter(protocols))
 	if err != nil {
 		log.Printf("failed to creat content router client: %s\n", err)
 		return false
