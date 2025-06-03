@@ -1,0 +1,28 @@
+{
+  "name": "ipfs-check-ui",
+  "version": "1.0.0",
+  "homepage": "https://check.ipfs.network",
+  "description": "frontend ui for ipfs-check",
+  "main": "index.js",
+  "scripts": {
+    "build": "tailwindcss -i ./input.css -o ./output.css --minify",
+    "dev": "tailwindcss -i ./input.css -o ./output.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ipfs/ipfs-check.git"
+  },
+  "keywords": [
+    "ipfs",
+    "ipni",
+    "ipfs-check"
+  ],
+  "license": "Apache-2.0 OR MIT",
+  "bugs": {
+    "url": "https://github.com/ipfs/ipfs-check/issues"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.8",
+    "tailwindcss": "^4.1.8"
+  }
+}

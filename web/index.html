@@ -4,108 +4,112 @@
     <meta charset="UTF-8">
     <title>IPFS Check</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="tachyons.min.css"/>
+    <!-- Tailwind CSS CDN -->
+    <link rel="stylesheet" href="output.css">
     <link rel="canonical" href="https://check.ipfs.network/">
+    <script src="script.js" defer></script>
 </head>
-<body class="sans-serif ma0">
+<body class="font-sans bg-gray-50 text-gray-900 m-0">
 <header>
-    <h1 class="dib pa3 ma0 lh-tight">
-        <a class="link db f4 fw7 near-black" href="https://ipfs.io">IPFS <span class="blue fw5">Check</span></a>
-        <span class="db f6 fw6 silver">Have you seen my CID?</span>
+    <h1 class="inline-block px-3 py-3 m-0 leading-tight">
+        <a class="no-underline block text-lg font-bold text-gray-900" href="https://ipfs.io">IPFS <span class="text-ipfs-teal-500 font-semibold">Check</span></a>
+        <span class="block text-xs font-semibold text-gray-600">Have you seen my CID?</span>
     </h1>
 </header>
 <main>
-    <section class="mw7 center lh-copy dark-gray ph1 pb4">
-        <p class="ma0 pv0 ph2 f4 fw6">
+    <section class="max-w-3xl mx-auto leading-relaxed text-gray-800 px-2 pb-8">
+        <h2 class="m-0 py-0 px-2 text-xl font-bold">
             Check the retrievability of data by CID
-        </p>
-        <p class="ma0 pv0 mt2 ph2 f5 fw4">
+        </h2>
+        <p class="m-0 py-0 mt-2 px-2 text-lg font-normal">
             Paste in a Content ID and the multiaddr (optional) of a host to check if it is expected to be retrievable
         </p>
     </section>
-    <section class="bg-near-white">
-        <form id="queryForm" class="mw8 center lh-copy dark-gray br2 pv4 ph2 ph4-ns">
-            <label class="db mt3 f6 fw6" for="cid">CID or multihash</label>
-            <input class="db w-100 pa2" type="text" id="cid" name="cid" required>
-            <label class="db mt3 f6 fw6" for="ma">Multiaddr (optional)</label>
-            <input class="db w-100 pa2" type="text" id="multiaddr" name="multiaddr" placeholder="/p2p/12D3Koo..." />
-            <details class="mt3">
-                <summary class="f6 fw6">Backend Config</summary>
-                <label class="db mt3 f6 fw6" for="backendURL">Backend URL</label>
-                <input class="db w-100 pa2" type="url" id="backendURL" name="backendURL" value="https://ipfs-check-backend.ipfs.io" placeholder="https://ipfs-check-backend.ipfs.io" list="defaultBackendURLs" required>
+    <section class="bg-white">
+        <form id="queryForm" class="max-w-4xl mx-auto leading-relaxed text-gray-800 rounded-lg py-8 px-2 md:px-8">
+            <label class="block mt-3 text-xs font-bold" for="cid">CID or multihash</label>
+            <input class="block w-full p-2 border border-gray-300 rounded" type="text" id="cid" name="cid" required>
+            <label class="block mt-3 text-xs font-bold" for="ma">Multiaddr (optional)</label>
+            <input class="block w-full p-2 border border-gray-300 rounded" type="text" id="multiaddr" name="multiaddr" placeholder="/p2p/12D3Koo..." />
+            <details class="mt-3">
+                <summary class="text-xs font-bold">Backend Config</summary>
+                <label class="block mt-3 text-xs font-bold" for="backendURL">Backend URL</label>
+                <input class="block w-full p-2 border border-gray-300 rounded" type="url" id="backendURL" name="backendURL" value="https://ipfs-check-backend.ipfs.io" placeholder="https://ipfs-check-backend.ipfs.io" list="defaultBackendURLs" required>
                 <datalist id="defaultBackendURLs">
                     <option value="https://ipfs-check-backend.ipfs.io">
                 </datalist>
-                <label class="db mt3 f6 fw6" for="ipniIndexer">IPNI Indexer</label>
-                <input class="db w-100 pa2" type="url" id="ipniIndexer" name="ipniIndexer" value="https://cid.contact" placeholder="https://cid.contact" list="defaultIndexers" required>
+                <label class="block mt-3 text-xs font-bold" for="ipniIndexer">IPNI Indexer</label>
+                <input class="block w-full p-2 border border-gray-300 rounded" type="url" id="ipniIndexer" name="ipniIndexer" value="https://cid.contact" placeholder="https://cid.contact" list="defaultIndexers" required>
                 <datalist id="defaultIndexers">
                     <option value="https://cid.contact">
                 </datalist>
-                <div class="mt3">
-                    <label class="db f6 fw6" for="timeoutSeconds">Check Timeout (seconds)</label>
-                    <input class="db w-100 mt2" type="range" id="timeoutSeconds" name="timeoutSeconds" min="5" max="300" value="60" step="1">
-                    <output class="db fw6 f6" for="timeoutSeconds" id="timeoutValue">60</output>
+                <div class="mt-3">
+                    <label class="block text-xs font-bold" for="timeoutSeconds">Check Timeout (seconds)</label>
+                    <input class="block w-full mt-2" type="range" id="timeoutSeconds" name="timeoutSeconds" min="5" max="300" value="60" step="1">
+                    <output class="block font-bold text-xs" for="timeoutSeconds" id="timeoutValue">60</output>
                 </div>
-                <label class="dib mt3 mr3 f6 fw6" for="httpRetrieval">Check HTTP retrieval</label>
-                <input class="di pa2" type="checkbox" id="httpRetrieval" name="httpRetrieval" checked>
+                <label class="inline-block mt-3 mr-3 text-xs font-bold" for="httpRetrieval">Check HTTP retrieval</label>
+                <input class="inline-block p-2" type="checkbox" id="httpRetrieval" name="httpRetrieval" checked>
             </details>
-            <div class="db mv4">
-                <button id="submit" type="submit" class="flex items-center db ph3 pv2 link pointer glow o-90 bg-blue white fw6 f5 bn br2">
-                  <svg id="loading-spinner" class="dn animate-spin mr2 h2 w2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="o-20" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="o-80" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <div class="block my-6">
+                <button id="submit" type="submit" class="flex items-center px-6 py-2 no-underline cursor-pointer shadow transition bg-ipfs-navy-800 hover:bg-ipfs-navy-900 text-white font-bold text-lg border-0 rounded">
+                  <svg id="loading-spinner" class="hidden animate-spin mr-2 h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
                   Run Test
                 </button>
             </div>
-            <div id="output" style="white-space:pre; overflow-x: scroll;" class="lh-copy fw5"></div>
-            <details class="mt3">
-              <summary class="f6 fw6">Raw Output</summary>
-              <pre style="white-space:pre;" class="lh-copy fw5 language-json"><code id="raw-output"></code></pre>
+            <div id="output" class="leading-relaxed font-medium"></div>
+            <details class="mt-3">
+              <summary class="text-xs font-bold">Raw Output</summary>
+              <div class="bg-gray-900 text-green-200 rounded p-4 overflow-x-auto mt-2">
+                <pre style="white-space:pre;" class="leading-relaxed font-medium language-json"><code id="raw-output"></code></pre>
+              </div>
             </details>
         </form>
     </section>
-    <section class="mw8 center lh-copy dark-gray pv4 ph2 ph4-ns">
-        <h2 class="f4">Where do I find my multiaddr?</h2>
-        <ul>
-            <li class="pb2">
+    <section class="max-w-4xl mx-auto leading-relaxed text-gray-800 py-8 px-2 md:px-8">
+        <h2 class="text-xl font-bold">Where do I find my multiaddr?</h2>
+        <ul class="list-disc ml-6">
+            <li class="pb-2">
                 <strong>Using IPFS Desktop or IPFS WebUI</strong>
-                <ul>
+                <ul class="list-disc ml-6">
                     <li>Open the IPFS WebUI "Status" page via the IPFS Desktop menu or by visiting "http://127.0.0.1:5001/webui" (when using the default config settings)</li>
-                    <li>If you want to test your peerID rather than a particular address enter <code>/p2p/{YourPeerID}</code></li>
+                    <li>If you want to test your peerID rather than a particular address enter <code class="bg-gray-100 px-1 rounded">/p2p/{YourPeerID}</code></li>
                     <li>If you want to test a particular address then click the "Advanced" dropdown to see the node's addresses</li>
                 </ul>
             </li>
-            <li class="pb2">
+            <li class="pb-2">
                 <strong>Using the kubo CLI</strong>
-                <ul>
-                    <li>If you want to test your peerID rather than a particular address run <code>ipfs id</code> and enter <code>/p2p/{YourPeerID}</code></li>
-                    <li>If you want to test a particular address then choose an entry from the list of addresses output by <code>ipfs id</code></li>
+                <ul class="list-disc ml-6">
+                    <li>If you want to test your peerID rather than a particular address run <code class="bg-gray-100 px-1 rounded">ipfs id</code> and enter <code class="bg-gray-100 px-1 rounded">/p2p/{YourPeerID}</code></li>
+                    <li>If you want to test a particular address then choose an entry from the list of addresses output by <code class="bg-gray-100 px-1 rounded">ipfs id</code></li>
                 </ul>
             </li>
         </ul>
-        <h2 class="f4">What does it mean if I get an error?</h2>
-        <ul>
-            <li class="pb2">
+        <h2 class="text-xl font-bold mt-8">What does it mean if I get an error?</h2>
+        <ul class="list-disc ml-6">
+            <li class="pb-2">
                 <strong>Could not connect to the multiaddr</strong>. Machines on the internet cannot talk to your machine.
                 Fix your firewall, add port forwarding, or use a relay.
             </li>
-            <li class="pb2">
+            <li class="pb-2">
                 <strong>Could not find address in the dht</strong>. Your machine is either not connected to the IPFS Public DHT
                 (even as a client), or is not advertising the address that you are testing with. As a result no one will be
                 able to contact you on that address if they only learn about your peerID, as is the case for content
                 advertised in the IPFS Public DHT
             </li>
-            <li class="pb2">
+            <li class="pb-2">
                 <strong>Multihash not advertised in the dht</strong>. Your machine has not advertised that it has the given content in the
                 IPFS Public DHT. This means that other machines will have to discover that you have the content in some other
                 way (e.g. pre-connecting to you optimistically, pre-connecting to you since related content is already
                 advertised by you, some rendezvous service, being on the same LAN, etc.). If using kubo consider enabling the
-                <a href="https://github.com/ipfs/kubo/blob/master/docs/experimental-features.md#accelerated-dht-client">Accelerated DHT Client</a>,
+                <a class="text-blue-600 underline" href="https://github.com/ipfs/kubo/blob/master/docs/experimental-features.md#accelerated-dht-client">Accelerated DHT Client</a>,
 				which will advertise content faster and in particular should enable you to continue to republish your advertisements every 24hrs as
 				required by the network.
             </li>
-            <li class="pb2">
+            <li class="pb-2">
                 <strong>Peer has not responded that it has the CID</strong>. Your node does not think it has the data you think it does,
                 or it took too long to respond. Until this is resolved other machines will be unable to download that
                 content from you.
@@ -113,8 +117,8 @@
         </ul>
     </section>
 </main>
-<footer class="tc pv3">
-    <a href="https://github.com/ipfs/ipfs-check">Github</a>
+<footer class="text-center py-3">
+    <a class="text-blue-600 underline" href="https://github.com/ipfs/ipfs-check">Github</a>
 </footer>
 <style>
       .animate-spin { animation: spin 2s linear infinite }
@@ -131,248 +135,5 @@
         opacity: 50% !important;
     }
 </style>
-<script>
-    window.addEventListener('load', function () {
-        initFormValues(new URL(window.location))
-
-
-        document.getElementById('queryForm').addEventListener('submit', async function (e) {
-            e.preventDefault() // dont do a browser form post
-
-            showOutput('') // clear out previous results
-            showRawOutput('') // clear out previous results
-
-            const formData = new FormData(document.getElementById('queryForm'))
-            const backendURL = getBackendUrl(formData)
-            
-            showInQuery(formData) // add `cid` and `multiaddr` to local url query to make it shareable
-            toggleSubmitButton()
-            try {
-              const res = await fetch(backendURL, { method: 'POST' })
-
-              if (res.ok) {
-                  const respObj = await res.json()
-                  showRawOutput(JSON.stringify(respObj, null, 2))
-
-                  if(formData.get('multiaddr') == '') {
-                    const output = formatJustCidOutput(respObj)
-                    showOutput(output)
-                  } else {
-                    const output = formatMaddrOutput(formData.get('multiaddr'), respObj)
-                    showOutput(output)
-                  }
-              } else {
-                  const resText = await res.text()
-                  showOutput(`⚠️ backend returned an error: ${res.status} ${resText}`)
-              }
-            } catch (e) {
-              console.log(e)
-              showOutput(`⚠️ backend error: ${e}`)
-            } finally {
-              toggleSubmitButton()
-            }
-        })
-    })
-
-    function initFormValues (url) {
-        for (const [key, val] of url.searchParams) {
-            document.getElementById(key)?.setAttribute('value', val)
-        }
-
-        const timeoutSlider = document.getElementById('timeoutSeconds')
-        const timeoutValue = document.getElementById('timeoutValue')
-
-        timeoutSlider.addEventListener('input', function() {
-          timeoutValue.textContent = this.value
-        })
-        // set initial value
-        timeoutValue.textContent = timeoutSlider.value
-    }
-
-    function showInQuery (formData) {
-        const defaultBackendUrl = document.getElementById('backendURL').getAttribute('placeholder')
-        const params = new URLSearchParams(formData)
-        // skip showing default value our shareable url
-        if (params.get('backendURL') === defaultBackendUrl) {
-            params.delete('backendURL')
-        }
-        const url = new URL('?' + params, window.location)
-        history.replaceState(null, "", url)
-    }
-
-    function getBackendUrl (formData) {
-        const params = new URLSearchParams(formData)
-        // dont send backendURL to the backend!
-        params.delete('backendURL')
-        // backendURL is the base, params are appended as query string
-        return new URL('/check?' + params, formData.get('backendURL'))
-    }
-
-    function showOutput (output) {
-        const outObj = document.getElementById('output')
-        outObj.textContent = output
-    }
-
-    function showRawOutput (output) {
-        const outObj = document.getElementById('raw-output')
-        outObj.textContent = output
-    }
-
-    function toggleSubmitButton() {
-        const button = document.getElementById('submit')
-        button.toggleAttribute('disabled')
-        const spinner = document.getElementById('loading-spinner')
-        // Toggle spinner visibility
-        spinner.classList.toggle('dn')
-    }
-
-    function formatMaddrOutput (multiaddr, respObj) {
-        const peerIDStartIndex = multiaddr.lastIndexOf("/p2p/")
-        const peerID = multiaddr.slice(peerIDStartIndex + 5);
-        const addrPart = multiaddr.slice(0, peerIDStartIndex);
-        let outText = ""
-
-        if (respObj.ConnectionError !== "") {
-            outText += "❌ Could not connect to multiaddr: " + respObj.ConnectionError + "\n"
-        } else {
-            const madrs = respObj?.ConnectionMaddrs
-            outText += `✅ Successfully connected to multiaddr${madrs?.length > 1 ? 's' : '' }: \n\t${madrs.join('\n\t')}\n`
-        }
-
-        if (multiaddr.indexOf("/p2p/") === 0 && multiaddr.lastIndexOf("/") === 4) {
-            // only peer id passed with /p2p/PeerID
-            if (Object.keys(respObj.PeerFoundInDHT).length === 0) {
-                outText += "❌ Could not find any multiaddrs in the dht\n"
-            } else {
-                outText += "✅ Found multiaddrs advertised in the DHT:\n"
-                for (const key in respObj.PeerFoundInDHT) {
-                    outText += "\t" + key + "\n"
-                }
-            }
-        } else {
-            // a proper maddr with an IP was passed
-            let foundAddr = false
-            for (const key in respObj.PeerFoundInDHT) {
-                if (key === addrPart) {
-                    foundAddr = true
-                    outText += "✅ Found multiaddr with " + respObj.PeerFoundInDHT[key] + " dht peers\n"
-                    break
-                }
-            }
-            if (!foundAddr) {
-                outText += "❌ Could not find the given multiaddr in the dht."
-                if (Object.keys(respObj.PeerFoundInDHT).length > 0) {
-                  outText += " Instead found:\n"
-                  for (const key in respObj.PeerFoundInDHT) {
-                      outText += "\t" + key + "\n"
-                  }
-                } else {
-                  outText += " No other addresses were found.\n"
-                }
-            }
-        }
-        
-        if (respObj.ProviderRecordFromPeerInDHT === true || respObj.ProviderRecordFromPeerInIPNI === true) {
-            outText += "✅ Found multihash advertised in "
-            if (respObj.ProviderRecordFromPeerInDHT === true) {
-                outText += "DHT\n"
-            } else {
-                outText += "IPNI\n"
-            }
-        } else {
-            outText += "❌ Could not find the multihash in DHT or IPNI\n"
-        }
-
-        if (respObj.DataAvailableOverBitswap.Enabled === true) {
-          if (respObj.DataAvailableOverBitswap.Error !== "") {
-              outText += "❌ There was an error downloading the CID from the peer via Bitswap: " + respObj.DataAvailableOverBitswap.Error + "\n"
-          } else if (respObj.DataAvailableOverBitswap.Responded !== true) {
-              outText += "❌ The peer did not quickly respond if it had the CID over Bitswap\n"
-          } else if (respObj.DataAvailableOverBitswap.Found === true) {
-              outText += "✅ The peer responded that it has the CID\n"
-          } else {
-              outText += "❌ The peer responded that it does not have the CID\n"
-          }
-        }
-
-        if (respObj.DataAvailableOverHTTP.Enabled === true) {
-          if (respObj.DataAvailableOverHTTP.Error !== "") {
-              outText += "❌ There was an error checking the CID via HTTP: " + respObj.DataAvailableOverHTTP.Error + "\n"
-          }
-	  if (respObj.DataAvailableOverHTTP.Connected !== true) {
-              outText += "❌ HTTP connection was unsuccessful to the HTTP endpoint\n"
-          } else if (respObj.DataAvailableOverHTTP.Found === true) {
-              outText += "✅ The HTTP endpoint responded that it has the CID\n"
-          } else {
-              outText += "❌ The HTTP endpoint responded that it does not have the CID\n"
-          }
-        }
-        return outText
-    }
-
-    function formatJustCidOutput (resp) {
-        let outText = ""
-        if (resp.length === 0) {
-            outText += "❌ No providers found for the given CID"
-            return outText
-        }
-
-        const successfulProviders = resp.reduce((acc, provider) => {
-            if(provider.ConnectionError === '' && (provider.DataAvailableOverBitswap?.Found === true || provider.DataAvailableOverHTTP.Found === true)) {
-                acc++
-            }
-            return acc
-        }, 0)
-
-        const failedProviders = resp.length - successfulProviders
-
-        // Show providers with the data first, followed by reachable providers, then by those with addresses
-        resp.sort((a, b) => {
-            // First check if either has data available
-            const aHasData = a.DataAvailableOverBitswap?.Found || a.DataAvailableOverHTTP?.Found
-            const bHasData = b.DataAvailableOverBitswap?.Found || b.DataAvailableOverHTTP?.Found
-
-            if (aHasData && !bHasData) return -1
-            if (!aHasData && bHasData) return 1
-
-            // Then check connection errors
-            if (a.ConnectionError === '' && b.ConnectionError !== '') {
-                return -1;
-            } else if (a.ConnectionError !== '' && b.ConnectionError === '') {
-                return 1;
-            }
-
-            // Finally, show providers with addresses first
-            if(a.Addrs?.length > 0 && b.Addrs?.length === 0) {
-                return -1
-            } else if(a.Addrs?.length === 0 && b.Addrs?.length > 0) {
-                return 1
-            }
-
-            return 0
-        })
-
-        outText += `${successfulProviders > 0 ? '✅' : '❌'} Found ${successfulProviders} working providers (out of ${resp.length} provider records sampled from Amino DHT and IPNI) that could be connected to and had the CID available over Bitswap:`
-        for (const provider of resp) {
-            const couldConnect = provider.ConnectionError === ''
-            outText += `\n\t${provider.ID}\n`
-            if (provider.DataAvailableOverBitswap.Enabled === true) {
-	      outText += `\t\tLibp2p connected: ${couldConnect ? "✅" : `❌ ${provider.ConnectionError.replaceAll('\n', '\n\t\t')}` }`
-              outText += couldConnect ? `\n\t\tBitswap Check: ${provider.DataAvailableOverBitswap.Found ? `✅` : "❌"} ${provider.DataAvailableOverBitswap.Error || ''}` : ''
-            }
-            if (provider.DataAvailableOverHTTP.Enabled === true) {
-              const httpRes = provider.DataAvailableOverHTTP
-              outText += `\t\tHTTP Connected: ${httpRes.Connected ? '✅' : '❌'}`
-	      outText += `\n\t\tHTTP HEAD request: ${httpRes.Requested ? '✅' : '❌'}`
-	      outText += `\n\t\tHTTP Found: ${httpRes.Found ? '✅' : '❌'} ${provider.DataAvailableOverHTTP.Error || ''}`
-            }
-            outText += (couldConnect && provider.ConnectionMaddrs) ? `\n\t\tSuccessful Connection Multiaddr${provider.ConnectionMaddrs.length > 1 ? 's' : ''}:\n\t\t\t${provider.ConnectionMaddrs?.join('\n\t\t\t') || ''}` : ''
-            outText += (provider.Addrs.length > 0) ? `\n\t\tPeer Multiaddrs:\n\t\t\t${provider.Addrs.join('\n\t\t\t')}` : ''
-            outText += (typeof provider.Source === 'undefined') ? '' : `\n\t\tFound in: ${provider.Source}`
-        }
-
-        return outText
-    }
-</script>
 </body>
 </html>
