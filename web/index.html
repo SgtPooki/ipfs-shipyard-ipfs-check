@@ -291,9 +291,9 @@
           } else if (respObj.DataAvailableOverBitswap.Responded !== true) {
               outHtml += `<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded flex items-center'>${iconCross}<span>The peer did not quickly respond if it had the CID over Bitswap</span></div>`
           } else if (respObj.DataAvailableOverBitswap.Found === true) {
-              outHtml += `<div class='bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded flex items-center'>${iconCheck}<span>The peer responded that it has the CID</span></div>`
+              outHtml += `<div class='bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded flex items-center'>${iconCheck}<span>The peer responded that it has the CID over Bitswap</span></div>`
           } else {
-              outHtml += `<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded flex items-center'>${iconCross}<span>The peer responded that it does not have the CID</span></div>`
+              outHtml += `<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded flex items-center'>${iconCross}<span>The peer responded that it does not have the CID over Bitswap</span></div>`
           }
         }
 
