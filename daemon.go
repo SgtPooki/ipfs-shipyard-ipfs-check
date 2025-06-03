@@ -359,7 +359,11 @@ func (d *daemon) runPeerCheck(ctx context.Context, ma multiaddr.Multiaddr, ai pe
 	var wg sync.WaitGroup
 	wg.Add(3)
 	go func() {
-		addrMap, peerAddrDHTErr = peerAddrsInDHT(ctx, d.dht, d.dhtMessenger, ai.ID)
+		// 15 seconds is the timeout for the peer routing query so we can continue with the check
+		// if the peer is not found in the DHT within a reasonable time
+		timeoutCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
+		defer cancel()
+		addrMap, peerAddrDHTErr = peerAddrsInDHT(timeoutCtx, d.dht, d.dhtMessenger, ai.ID)
 		wg.Done()
 	}()
 	go func() {
