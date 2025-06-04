@@ -132,7 +132,7 @@ function formatMaddrOutput (multiaddr, respObj) {
         if (!foundAddr) {
             let alt = ''
             if (Object.keys(respObj.PeerFoundInDHT).length > 0) {
-              alt = `<br>Instead found:<br><span class='font-mono text-xs block ml-6'>${Object.keys(respObj.PeerFoundInDHT).join('<br>')}</span>`
+              alt = `<br>Instead found:<br><span class='font-mono text-xs block ml-6 break-all'>${Object.keys(respObj.PeerFoundInDHT).join('<br>')}</span>`
             } else {
               alt = '<br>No other addresses were found.'
             }
