@@ -150,28 +150,28 @@ function formatMaddrOutput (multiaddr, respObj) {
     // Bitswap
     if (respObj.DataAvailableOverBitswap?.Enabled === true) {
       if (respObj.DataAvailableOverBitswap?.Error !== "") {
-          outHtml += `<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded flex items-center'>${iconCross}<span>There was an error downloading the CID from the peer via Bitswap: <span class='font-mono'>${respObj.DataAvailableOverBitswap.Error}</span></span></div>`
+          outHtml += `<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded flex items-center'>${iconCross}<span>There was an error downloading the data for the CID from the peer via Bitswap: <span class='font-mono'>${respObj.DataAvailableOverBitswap.Error}</span></span></div>`
       } else if (respObj.DataAvailableOverBitswap?.Responded !== true) {
-          outHtml += `<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded flex items-center'>${iconCross}<span>The peer did not quickly respond if it had the CID over Bitswap</span></div>`
+          outHtml += `<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded flex items-center'>${iconCross}<span>The peer did not quickly respond if it had the data for the CID over Bitswap</span></div>`
       } else if (respObj.DataAvailableOverBitswap?.Found === true) {
-          outHtml += `<div class='bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded flex items-center'>${iconCheck}<span>The peer responded that it has the CID over Bitswap</span></div>`
+          outHtml += `<div class='bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded flex items-center'>${iconCheck}<span>The peer responded that it has the data for the CID over Bitswap</span></div>`
       } else {
-          outHtml += `<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded flex items-center'>${iconCross}<span>The peer responded that it does not have the CID over Bitswap</span></div>`
+          outHtml += `<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded flex items-center'>${iconCross}<span>The peer responded that it does not have the data for the CID over Bitswap</span></div>`
       }
     }
 
     // HTTP
     if (respObj.DataAvailableOverHTTP?.Enabled === true) {
       if (respObj.DataAvailableOverHTTP?.Error !== "") {
-          outHtml += `<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded flex items-center'>${iconCross}<span>There was an error downloading the CID via HTTP: <span class='font-mono'>${respObj.DataAvailableOverHTTP.Error}</span></span></div>`
+          outHtml += `<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded flex items-center'>${iconCross}<span>There was an error downloading the data for the CID via HTTP: <span class='font-mono'>${respObj.DataAvailableOverHTTP.Error}</span></span></div>`
       }
 
       if (respObj.DataAvailableOverHTTP?.Connected !== true) {
           outHtml += `<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded flex items-center'>${iconCross}<span>HTTP connection was unsuccessful to the HTTP endpoint</span></div>`
       } else if (respObj.DataAvailableOverHTTP?.Found === true) {
-          outHtml += `<div class='bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded flex items-center'>${iconCheck}<span>The HTTP endpoint responded that it has the CID</span></div>`
+          outHtml += `<div class='bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded flex items-center'>${iconCheck}<span>The HTTP endpoint responded that it has the data for the CID</span></div>`
       } else {
-          outHtml += `<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded flex items-center'>${iconCross}<span>The HTTP endpoint responded that it does not have the CID</span></div>`
+          outHtml += `<div class='bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded flex items-center'>${iconCross}<span>The HTTP endpoint responded that it does not have the data for the CID</span></div>`
       }
     }
     outHtml += '</div>'
