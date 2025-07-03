@@ -5,6 +5,8 @@ const iconInfo = `<svg class="inline w-5 h-5 text-blue-500 mr-1" fill="none" str
 
 window.addEventListener('load', function () {
     initFormValues(new URL(window.location))
+    const plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }
+
 
     const queryForm = document.getElementById('queryForm')
     queryForm.addEventListener('submit', async function (e) {
@@ -15,6 +17,13 @@ window.addEventListener('load', function () {
 
         const formData = new FormData(queryForm)
         const backendURL = getBackendUrl(formData)
+        const inputMaddr = formData.get('multiaddr')
+
+        plausible('IPFS Check Run', {
+            props: {
+                withMultiaddr: inputMaddr != ''
+            },
+        })
 
         showInQuery(formData) // add `cid` and `multiaddr` to local url query to make it shareable
         toggleSubmitButton()
@@ -25,11 +34,11 @@ window.addEventListener('load', function () {
               const respObj = await res.json()
               showRawOutput(JSON.stringify(respObj, null, 2))
 
-              if(formData.get('multiaddr') == '') {
+              if(inputMaddr == '') {
                 const output = formatJustCidOutput(respObj)
                 showOutput(output)
               } else {
-                const output = formatMaddrOutput(formData.get('multiaddr'), respObj)
+                const output = formatMaddrOutput(inputMaddr, respObj)
                 showOutput(output)
               }
           } else {
