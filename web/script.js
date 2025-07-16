@@ -5,7 +5,10 @@ const iconInfo = `<svg class="inline w-5 h-5 text-blue-500 mr-1" fill="none" str
 
 window.addEventListener('load', function () {
     initFormValues(new URL(window.location))
-    const plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }
+    const plausible = window.plausible || function() {
+        window.plausible = window.plausible || { q: [] };
+        window.plausible.q.push(arguments);
+    }
 
 
     const queryForm = document.getElementById('queryForm')
