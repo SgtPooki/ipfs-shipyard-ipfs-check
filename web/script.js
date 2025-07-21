@@ -7,7 +7,11 @@ window.addEventListener('load', function () {
     initFormValues(new URL(window.location))
     const plausible = window.plausible || function() {
         window.plausible = window.plausible || { q: [] };
-        window.plausible.q.push(arguments);
+        try {
+          window.plausible.q.push(arguments);
+        } catch (e) {
+          // Silent fallback - analytics shouldn't break the app
+        }
     }
 
 
